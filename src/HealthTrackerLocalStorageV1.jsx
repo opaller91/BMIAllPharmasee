@@ -489,7 +489,7 @@ export default function HealthTrackerLocalStorageV1() {
                     <span className="truncate">Lifestyle Vitamin Matching</span>
                   </div>
                   <h1 className="mt-5 max-w-2xl text-[26px] font-extrabold leading-[1.12] tracking-[-0.035em] text-white sm:text-4xl lg:text-6xl">
-                    รู้ไลฟ์สไตล์ แนะนำวิตามินที่ใช่
+                    eXta health care
                   </h1>
                   <p className="mt-3 max-w-xl text-[13px] leading-6 text-white/65 sm:text-sm lg:text-base">
                     ใช้แบบทดสอบพฤติกรรม + BMI + Body Scan เพื่อสร้าง Insight และเสนอสินค้าแบบตรงบริบท
