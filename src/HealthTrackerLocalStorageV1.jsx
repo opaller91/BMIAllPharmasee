@@ -4,6 +4,7 @@ import {
   Battery,
   Brain,
   ChevronRight,
+  Dumbbell,
   Eye,
   Moon,
   Scale,
@@ -11,16 +12,15 @@ import {
   ShoppingBag,
   Sparkles,
   Trash2,
-  Dumbbell,
 } from "lucide-react";
 import {
-  LineChart,
+  CartesianGrid,
   Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
 } from "recharts";
 
 const STORAGE_KEY = "health-tracker-records-v1";
@@ -142,8 +142,10 @@ const seedRecords = [
 ];
 
 function getInitialRecords() {
+  if (typeof window === "undefined") return seedRecords;
+
   try {
-    const savedRecords = localStorage.getItem(STORAGE_KEY);
+    const savedRecords = window.localStorage.getItem(STORAGE_KEY);
     return savedRecords ? JSON.parse(savedRecords) : seedRecords;
   } catch (error) {
     console.error("Cannot load records from localStorage", error);
@@ -241,15 +243,19 @@ function getLifestyleInsight(lifestyle, latest, latestBodyScan) {
   if (lifestyle.sleep === "low" && lifestyle.stress === "high") {
     return `คุณมี pattern พักผ่อนน้อย + เครียดสูง เหมาะกับการเริ่มจาก ${first}`;
   }
+
   if (lifestyle.screenTime === "high") {
     return `คุณใช้หน้าจอค่อนข้างมาก เหมาะกับการเสนอสินค้า Eye Care คู่กับ ${first}`;
   }
+
   if (lifestyle.diet === "lowProtein" || latestBodyScan?.musclePercent < 32) {
     return "ข้อมูลบอกว่าควรเสริมโปรตีนให้พอ เหมาะกับการเสนอ Protein Set";
   }
+
   if (latest?.bmi >= 23) {
     return "BMI เริ่มเกินเกณฑ์ เหมาะกับสินค้าน้ำตาลน้อย โปรตีน และวิตามินดูแลสุขภาพประจำวัน";
   }
+
   return `สุขภาพโดยรวมอยู่ในเกณฑ์ดี เหมาะกับการเสนอ ${first} เป็น daily wellness routine`;
 }
 
@@ -290,6 +296,7 @@ function MetricCard({ title, value, helper, icon: Icon }) {
 
 function VitaminCard({ item }) {
   const Icon = item.icon;
+
   return (
     <div className="rounded-[22px] bg-white p-3 shadow-[0_12px_35px_rgba(0,91,168,0.07)] sm:rounded-[24px] sm:p-4">
       <div className="flex items-start gap-3">
@@ -298,7 +305,9 @@ function VitaminCard({ item }) {
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
-            <p className="text-sm font-extrabold tracking-[-0.03em] text-slate-950 sm:text-base">{item.title}</p>
+            <p className="text-sm font-extrabold tracking-[-0.03em] text-slate-950 sm:text-base">
+              {item.title}
+            </p>
             <span className="shrink-0 rounded-full bg-slate-100 px-2 py-1 text-[10px] font-bold text-slate-500 sm:text-[11px]">
               {item.tag}
             </span>
@@ -329,7 +338,7 @@ function EmptyResult() {
 }
 
 export default function HealthTrackerLocalStorageV1() {
-  const [records, setRecords] = useState(getInitialRecords);
+  const [records, setRecords] = useState(() => getInitialRecords());
   const [activeTrendTab, setActiveTrendTab] = useState("chart");
   const [showQuizResult, setShowQuizResult] = useState(false);
   const [showResultModal, setShowResultModal] = useState(false);
@@ -352,14 +361,19 @@ export default function HealthTrackerLocalStorageV1() {
   });
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
     } catch (error) {
       console.error("Cannot save records to localStorage", error);
     }
   }, [records]);
 
-  const sortedRecords = useMemo(() => [...records].sort((a, b) => a.date.localeCompare(b.date)), [records]);
+  const sortedRecords = useMemo(() => {
+    return [...records].sort((a, b) => a.date.localeCompare(b.date));
+  }, [records]);
+
   const latest = sortedRecords[sortedRecords.length - 1];
   const latestBodyScan = getLatestBodyScan(sortedRecords);
   const bmiStatus = latest ? getBmiCategory(latest.bmi) : null;
@@ -475,7 +489,7 @@ export default function HealthTrackerLocalStorageV1() {
                     <span className="truncate">Lifestyle Vitamin Matching</span>
                   </div>
                   <h1 className="mt-5 max-w-2xl text-[26px] font-extrabold leading-[1.12] tracking-[-0.035em] text-white sm:text-4xl lg:text-6xl">
-                    eXta health care
+                    รู้ไลฟ์สไตล์ แนะนำวิตามินที่ใช่
                   </h1>
                   <p className="mt-3 max-w-xl text-[13px] leading-6 text-white/65 sm:text-sm lg:text-base">
                     ใช้แบบทดสอบพฤติกรรม + BMI + Body Scan เพื่อสร้าง Insight และเสนอสินค้าแบบตรงบริบท
@@ -555,7 +569,9 @@ export default function HealthTrackerLocalStorageV1() {
                   <h2 className="mt-1 text-lg font-extrabold tracking-[-0.025em] text-slate-950 sm:text-xl">BMI Tracker</h2>
                   <p className="mt-1 text-sm text-slate-400">บันทึกน้ำหนัก/BMI ส่วน Body Scan ใส่เฉพาะวันที่มีเครื่องวัด</p>
                 </div>
-                <div className="rounded-2xl bg-[#005ba8]/10 p-3 text-[#005ba8]"><Scale className="h-5 w-5" /></div>
+                <div className="rounded-2xl bg-[#005ba8]/10 p-3 text-[#005ba8]">
+                  <Scale className="h-5 w-5" />
+                </div>
               </div>
 
               <div className="space-y-4 sm:space-y-5">
@@ -683,14 +699,9 @@ export default function HealthTrackerLocalStorageV1() {
                         {vitaminRecommendations.map((item) => <VitaminCard key={item.title} item={item} />)}
                       </div>
 
-                      <a
-                        href="https://www.allonline.7eleven.co.th/health/"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="mt-4 flex h-11 w-full items-center justify-center gap-2 rounded-2xl bg-[#005ba8] text-sm font-bold text-white transition hover:bg-[#004a8a] sm:h-12"
-                      >
+                      <button className="mt-4 flex h-11 w-full items-center justify-center gap-2 rounded-2xl bg-[#005ba8] text-sm font-bold text-white transition hover:bg-[#004a8a] sm:h-12">
                         ดูสินค้าที่เหมาะกับคุณ <ChevronRight className="h-4 w-4" />
-                      </a>
+                      </button>
                     </>
                   ) : (
                     <EmptyResult />
@@ -737,7 +748,9 @@ export default function HealthTrackerLocalStorageV1() {
             <p className="text-xs font-bold uppercase tracking-wide text-[#005ba8]">Your Result</p>
             <h2 className="mt-1 text-xl font-extrabold text-slate-950 sm:text-2xl">ผลวิเคราะห์ Lifestyle ของคุณ</h2>
             <p className="mt-3 rounded-2xl bg-[#005ba8]/5 p-4 text-sm font-bold leading-6 text-slate-800 sm:text-base sm:leading-7">{lifestyleInsight}</p>
-            <div className="mt-5 space-y-3">{vitaminRecommendations.map((item) => <VitaminCard key={item.title} item={item} />)}</div>
+            <div className="mt-5 space-y-3">
+              {vitaminRecommendations.map((item) => <VitaminCard key={item.title} item={item} />)}
+            </div>
             <button onClick={() => setShowResultModal(false)} className="mt-6 h-11 w-full rounded-2xl bg-[#005ba8] text-sm font-bold text-white sm:h-12">ปิด</button>
           </div>
         </div>
